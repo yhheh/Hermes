@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+solana
+solders
+requests
+pyyaml
+aiohttp
+websockets
+loguru
