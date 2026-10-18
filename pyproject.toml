@@ -1,2 +1,2 @@
 [tool.vercel]
-functions = { "web_app.py" = { maxDuration = 30 } }
+"web_app:handler" = "entrypoint"
