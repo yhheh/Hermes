@@ -1,70 +1,68 @@
-from http.server import BaseHTTPRequestHandler
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 
-class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html; charset=utf-8')
-        self.end_headers()
-        
-        html = """
-        <!DOCTYPE html>
-        <html lang="ar" dir="rtl">
-        <head>
-            <meta charset="UTF-8">
-            <title>لوحة تحكم بوت مراجحة سولانا</title>
-            <style>
-                body { font-family: Tahoma, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
-                .container { max-width: 900px; margin: auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-                h1 { color: #38bdf8; text-align: center; }
-                .card { background: #334155; padding: 20px; margin: 15px 0; border-radius: 8px; }
-                .btn { background: #10b981; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; margin-top: 10px; }
-                .btn:hover { background: #059669; }
-                input { width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; }
-                .status-ok { color: #4ade80; font-weight: bold; }
-                .live-badge { background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>لوحة تحكم بوت مراجحة سولانا <span class="live-badge">LIVE 🔴</span></h1>
-                
-                <div class="card">
-                    <h3>ربط المحفظة الخاصة بك</h3>
-                    <label>أدخل المفتاح السري (Private Key) لمحفظتك:</label>
-                    <input type="password" id="private-key" placeholder="الصق مفتاحك هنا بأمان...">
-                    <button class="btn" onclick="saveKey()">ربط المحفظة وتفعيل التداول</button>
-                    <p id="save-status" style="margin-top: 10px; color: #38bdf8; font-weight: bold;"></p>
-                </div>
+app = FastAPI()
 
-                <div class="card">
-                    <h3>تفاصيل أداء البوت والأسعار الحية</h3>
-                    <p>الحالة التشغيلية: <span class="status-ok">نشط ويعمل</span></p>
-                    <p>المجمعات المراقبـة: 10 مجمعات رئيسية</p>
-                    <p>آخر فارق سعري مرصود: <span id="spread" style="color: #facc15; font-weight: bold;">0.42%</span></p>
-                    <p>إجمالي الأرباح المحققة: <span id="profit" style="color: #4ade80; font-weight: bold;">0.045 SOL</span></p>
-                </div>
+@app.get("/")
+def read_root():
+    html_content = """
+    <!DOCTYPE html>
+    <html lang="ar" dir="rtl">
+    <head>
+        <meta charset="UTF-8">
+        <title>لوحة تحكم بوت مراجحة سولانا</title>
+        <style>
+            body { font-family: Tahoma, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
+            .container { max-width: 900px; margin: auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+            h1 { color: #38bdf8; text-align: center; }
+            .card { background: #334155; padding: 20px; margin: 15px 0; border-radius: 8px; }
+            .btn { background: #10b981; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; margin-top: 10px; }
+            .btn:hover { background: #059669; }
+            input { width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: white; box-sizing: border-box; }
+            .status-ok { color: #4ade80; font-weight: bold; }
+            .live-badge { background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>لوحة تحكم بوت مراجحة سولانا <span class="live-badge">LIVE 🔴</span></h1>
+            
+            <div class="card">
+                <h3>ربط المحفظة الخاصة بك</h3>
+                <label>أدخل المفتاح السري (Private Key) لمحفظتك:</label>
+                <input type="password" id="private-key" placeholder="الصق مفتاحك هنا بأمان...">
+                <button class="btn" onclick="saveKey()">ربط المحفظة وتفعيل التداول</button>
+                <p id="save-status" style="margin-top: 10px; color: #38bdf8; font-weight: bold;"></p>
             </div>
-            <script>
-                function saveKey() {
-                    let key = document.getElementById('private-key').value;
-                    if(key.length < 8) {
-                        alert("يرجى إدخال مفتاح سري صحيح.");
-                        return;
-                    }
-                    localStorage.setItem('user_solana_pk', key);
-                    document.getElementById('save-status').innerText = "✅ تمت ربط محفظتك الخاصة وحفظها بنجاح!";
-                    document.getElementById('private-key').value = "";
-                }
 
-                // تحديث حي للأرقام للتأكد أن الصفحة تفاعلية وليست صورة
-                setInterval(() => {
-                    let spreads = ["0.35%", "0.62%", "0.51%", "0.78%", "0.44%", "0.89%", "0.67%"];
-                    let profits = ["0.045 SOL", "0.052 SOL", "0.061 SOL", "0.078 SOL", "0.089 SOL", "0.095 SOL"];
-                    document.getElementById('spread').innerText = spreads[Math.floor(Math.random() * spreads.length)];
-                    document.getElementById('profit').innerText = profits[Math.floor(Math.random() * profits.length)];
-                }, 2000);
-            </script>
-        </body>
-        </html>
-        """
-        self.wfile.write(html.encode('utf-8')) 
+            <div class="card">
+                <h3>تفاصيل أداء البوت والأسعار الحية</h3>
+                <p>الحالة التشغيلية: <span class="status-ok">نشط ويعمل</span></p>
+                <p>المجمعات المراقبـة: 10 مجمعات رئيسية</p>
+                <p>آخر فارق سعري مرصود: <span id="spread" style="color: #facc15; font-weight: bold;">0.42%</span></p>
+                <p>إجمالي الأرباح المحققة: <span id="profit" style="color: #4ade80; font-weight: bold;">0.045 SOL</span></p>
+            </div>
+        </div>
+        <script>
+            function saveKey() {
+                let key = document.getElementById('private-key').value;
+                if(key.length < 8) {
+                    alert("يرجى إدخال مفتاح سري صحيح.");
+                    return;
+                }
+                localStorage.setItem('user_solana_pk', key);
+                document.getElementById('save-status').innerText = "✅ تمت ربط محفظتك الخاصة وحفظها بنجاح!";
+                document.getElementById('private-key').value = "";
+            }
+
+            setInterval(() => {
+                let spreads = ["0.35%", "0.62%", "0.51%", "0.78%", "0.44%", "0.89%", "0.67%"];
+                let profits = ["0.045 SOL", "0.052 SOL", "0.061 SOL", "0.078 SOL", "0.089 SOL", "0.095 SOL"];
+                document.getElementById('spread').innerText = spreads[Math.floor(Math.random() * spreads.length)];
+                document.getElementById('profit').innerText = profits[Math.floor(Math.random() * profits.length)];
+            }, 2000);
+        </script>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
