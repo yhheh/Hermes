@@ -1,2 +1,2 @@
 [tool.vercel]
-"web_app:handler" = "entrypoint"
+entrypoint = "web_app:app"
